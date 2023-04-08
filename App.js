@@ -17,8 +17,16 @@ import {
   Platform,
 } from "react-native";
 
+const initialState = {
+  login: "",
+  email: "",
+  password: "",
+};
+
 export default function App() {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [state, setState] = useState(initialState);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [fontsLoaded] = useFonts({
     "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
@@ -33,6 +41,17 @@ export default function App() {
   const keyboardHide = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
+  };
+
+  const handleInputChange = (value, fieldName) => {
+    setState((prevState) => ({
+      ...prevState,
+      [fieldName]: value,
+    }));
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -53,27 +72,46 @@ export default function App() {
                   placeholder="Логин"
                   placeholderTextColor="#BDBDBD"
                   onFocus={() => setIsShowKeyboard(true)}
+                  value={state.login}
+                  onChangeText={(value) => handleInputChange(value, "login")}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Адрес электронной почты"
                   placeholderTextColor="#BDBDBD"
                   onFocus={() => setIsShowKeyboard(true)}
+                  value={state.email}
+                  onChangeText={(value) => handleInputChange(value, "email")}
                 />
-                <TextInput
-                  style={[
-                    styles.input,
-                    { marginBottom: isShowKeyboard ? 160 : 43 },
-                  ]}
-                  placeholder="Пароль"
-                  placeholderTextColor="#BDBDBD"
-                  onFocus={() => setIsShowKeyboard(true)}
-                />
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      { marginBottom: isShowKeyboard ? 180 : 43 },
+                    ]}
+                    placeholder="Пароль"
+                    placeholderTextColor="#BDBDBD"
+                    onFocus={() => setIsShowKeyboard(true)}
+                    value={state.password}
+                    onChangeText={(value) =>
+                      handleInputChange(value, "password")
+                    }
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.passwordBtn}
+                    onPress={togglePasswordVisibility}
+                  >
+                    <Text style={styles.passwordBtnText}>
+                      {showPassword ? "Скрыть" : "Показать"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </KeyboardAvoidingView>
 
-            <TouchableOpacity activeOpacity={0.8} style={styles.buttun}>
-              <Text style={styles.buttonTitle}>Зарегистрироваться</Text>
+            <TouchableOpacity activeOpacity={0.8} style={styles.submitBtn}>
+              <Text style={styles.submitBtnTitle}>Зарегистрироваться</Text>
             </TouchableOpacity>
             <Text style={styles.signInLink}> Уже есть аккаунт? Войти </Text>
           </View>
@@ -110,6 +148,7 @@ const styles = StyleSheet.create({
     color: "#212121",
   },
   input: {
+    position: "relative",
     marginBottom: 16,
     height: 50,
     backgroundColor: "#F6F6F6",
@@ -119,7 +158,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
   },
-  buttun: {
+  passwordBtn: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+  },
+  passwordBtnText: {
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#1B4371",
+  },
+  submitBtn: {
     paddingHorizontal: 32,
     paddingVertical: 16,
     height: 51,
@@ -127,7 +177,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     marginBottom: 16,
   },
-  buttonTitle: {
+  submitBtnTitle: {
     fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
