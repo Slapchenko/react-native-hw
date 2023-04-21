@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   StyleSheet,
@@ -11,10 +11,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Platform,
-  Dimensions,
 } from "react-native";
-
-const { width, height } = Dimensions.get("window");
 
 const initialState = {
   login: "",
@@ -24,21 +21,19 @@ const initialState = {
 
 const RegistrationScreen = () => {
   const [state, setState] = useState(initialState);
-  const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [formMargin, setFormMargin] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [activeInput, setActiveInput] = useState("");
 
-  const formMargin = height * (Platform.OS === "ios" ? 0.22 : 0.16);
-
-  const handleInputChange = (value, fieldName) => {
-    setState((prevState) => ({
-      ...prevState,
-      [fieldName]: value,
-    }));
+  const handleInputFocus = (inputName) => {
+    setActiveInput(inputName);
   };
 
-  const keyboardHide = () => {
-    setIsShowKeyboard(false);
-    Keyboard.dismiss();
+  const handleInputChange = (value, inputName) => {
+    setState((prevState) => ({
+      ...prevState,
+      [inputName]: value,
+    }));
   };
 
   const handleSubmit = () => {
@@ -55,45 +50,71 @@ const RegistrationScreen = () => {
     setShowPassword(!showPassword);
   };
 
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setFormMargin(e.endCoordinates.height - 142);
+      }
+    );
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setFormMargin(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
+
   return (
-    <TouchableWithoutFeedback onPress={keyboardHide}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <ImageBackground
           style={styles.image}
           source={require("../assets/images/photo-bg.jpg")}
         />
-        <View
-          style={[
-            styles.form,
-            { marginBottom: isShowKeyboard ? formMargin : 0 },
-          ]}
-        >
+        <View style={[styles.form, { marginBottom: formMargin }]}>
           <KeyboardAvoidingView
             behavior={Platform.OS == "ios" ? "padding" : "height"}
           >
-            <Text style={styles.formTitle}> Регистрация </Text>
+            <Text style={styles.formTitle}> Registration </Text>
             <TextInput
-              style={styles.input}
-              placeholder="Логин"
+              style={[
+                styles.input,
+                activeInput === "login" && styles.activeInput,
+              ]}
+              placeholder="Login"
               placeholderTextColor="#BDBDBD"
-              onFocus={() => setIsShowKeyboard(true)}
+              onFocus={() => handleInputFocus("login")}
               value={state.login}
               onChangeText={(value) => handleInputChange(value, "login")}
             />
             <TextInput
-              style={styles.input}
-              placeholder="Адрес электронной почты"
+              style={[
+                styles.input,
+                activeInput === "email" && styles.activeInput,
+              ]}
+              placeholder="Email address"
               placeholderTextColor="#BDBDBD"
-              onFocus={() => setIsShowKeyboard(true)}
+              onFocus={() => handleInputFocus("email")}
               value={state.email}
               onChangeText={(value) => handleInputChange(value, "email")}
             />
             <View style={styles.passwordInputContainer}>
               <TextInput
-                style={[styles.input, styles.inputLastChild]}
-                placeholder="Пароль"
+                style={[
+                  styles.input,
+                  styles.inputLastChild,
+                  activeInput === "password" && styles.activeInput,
+                ]}
+                placeholder="Password"
                 placeholderTextColor="#BDBDBD"
-                onFocus={() => setIsShowKeyboard(true)}
+                onFocus={() => handleInputFocus("password")}
                 value={state.password}
                 onChangeText={(value) => handleInputChange(value, "password")}
                 secureTextEntry={!showPassword}
@@ -103,7 +124,7 @@ const RegistrationScreen = () => {
                 onPress={togglePasswordVisibility}
               >
                 <Text style={styles.passwordBtnText}>
-                  {showPassword ? "Скрыть" : "Показать"}
+                  {showPassword ? "Hide" : "Show"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -113,9 +134,12 @@ const RegistrationScreen = () => {
             style={styles.submitBtn}
             onPress={handleSubmit}
           >
-            <Text style={styles.submitBtnTitle}>Зарегистрироваться</Text>
+            <Text style={styles.submitBtnTitle}>Sign up</Text>
           </TouchableOpacity>
-          <Text style={styles.signInLink}> Уже есть аккаунт? Войти </Text>
+          <Text style={styles.signInLink}>
+            {" "}
+            Already have an account? Sign in{" "}
+          </Text>
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -165,6 +189,13 @@ const styles = StyleSheet.create({
     borderColor: "#E8E8E8",
     borderRadius: 8,
     padding: 16,
+  },
+  activeInput: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#FF6C00",
+    borderStyle: "solid",
+    color: "#212121",
   },
   inputLastChild: {
     marginBottom: 43,

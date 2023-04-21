@@ -1,12 +1,13 @@
 import { useFonts } from "expo-font";
 
-import { StyleSheet, View, Dimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 
 import RegistrationScreen from "./Screens/RegistrationScreen";
-
-const { width, height } = Dimensions.get("window");
+import LoginScreen from "./Screens/LoginScreen";
 
 const App = () => {
+  const { height, width } = useWindowDimensions();
+
   const [fontsLoaded] = useFonts({
     "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
     "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
@@ -18,17 +19,11 @@ const App = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, height, width }}>
       <RegistrationScreen />
+      {/* {<LoginScreen />} */}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: width,
-    height: height,
-  },
-});
 
 export default App;
